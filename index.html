@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Своими словами</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Literata:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+  /* Layout: одна колонка-лист. Вопросы бота набраны печатным шрифтом, ответы человека пишутся «от руки» на тетрадной линейке */
+  --paper:#F2F4F8;
+  --sheet:#FFFFFF;
+  --ink:#171C32;
+  --ink-soft:#575E78;
+  --accent:#2B41C2;
+  --accent-tint:#E8ECFC;
+  --on-accent:#FFFFFF;
+  --line:#DCE1EB;
+  --rule:#CFD7EA;
+  --margin:#E59AA4;
+  --marker:#FFE27D;
+  --marker-2:#FFC4CE;
+  --ok:#1C7A4E;
+  --danger:#B3261E;
+  --on-danger:#FFFFFF;
+  --f-print:"Literata","PT Serif",Georgia,"Times New Roman",serif;
+  --f-hand:"Caveat","Segoe Print","Bradley Hand","Comic Sans MS",cursive;
+  --f-ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1220; --sheet:#171B2B; --ink:#E6E9F4; --ink-soft:#A2A9C2;
+    --accent:#9AAAFF; --accent-tint:#1F2547; --on-accent:#0D1120;
+    --line:#2A3049; --rule:#283052; --margin:#7E3F4B;
+    --marker:rgba(255,212,84,.40); --marker-2:rgba(255,120,150,.36);
+    --ok:#6FD3A0; --danger:#FF8A80; --on-danger:#2A0906;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1220; --sheet:#171B2B; --ink:#E6E9F4; --ink-soft:#A2A9C2;
+  --accent:#9AAAFF; --accent-tint:#1F2547; --on-accent:#0D1120;
+  --line:#2A3049; --rule:#283052; --margin:#7E3F4B;
+  --marker:rgba(255,212,84,.40); --marker-2:rgba(255,120,150,.36);
+  --ok:#6FD3A0; --danger:#FF8A80; --on-danger:#2A0906;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.bar-in,.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.mark{font-family:var(--f-print);font-style:italic;font-size:18px}
+.meta{display:flex;gap:8px;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.track{height:3px;background:var(--line)}
+.fill{height:100%;width:0;background:var(--accent);transition:width .3s ease}
+
+main.wrap{padding-block:28px 16px}
+.screen{display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.lede{margin:0;font-family:var(--f-print);font-weight:600;font-size:clamp(28px,5.4vw,40px);line-height:1.15;text-wrap:balance}
+.q{margin:0;font-family:var(--f-print);font-weight:600;font-size:clamp(22px,4.2vw,30px);line-height:1.25;text-wrap:balance}
+.q:focus{outline:none}
+.hint,.note{margin:0;max-width:62ch;color:var(--ink-soft)}
+.screen.enter .q{animation:rise .35s ease both}
+@keyframes rise{from{transform:translateY(6px);opacity:.35}to{transform:none;opacity:1}}
+
+.group{display:flex;flex-direction:column;gap:10px;min-width:0;margin:8px 0 0;padding:0;border:0}
+.group legend{padding:0;margin-bottom:10px;font-weight:600}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.choice{display:flex;flex-direction:column;gap:2px;padding:14px 16px;text-align:left;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet);color:var(--ink);font:inherit;cursor:pointer}
+.choice b{font-family:var(--f-print);font-size:18px;font-weight:600}
+.choice span{font-size:13px;color:var(--ink-soft)}
+.choice:hover{border-color:var(--ink-soft)}
+.choice[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-tint)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{min-height:44px;padding:9px 16px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
+.pill small{color:inherit;opacity:.75}
+.pill[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border:1px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);font:600 15px/1.2 var(--f-ui);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--ink-soft)}
+.btn-primary{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{border-color:var(--accent);filter:brightness(1.08)}
+.btn-danger{border-color:var(--danger);background:var(--danger);color:var(--on-danger)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn-link{min-height:44px;padding:10px 4px;border:0;background:none;color:var(--accent);font:600 15px/1.2 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.sheet-input{display:block;width:100%;min-width:0;min-height:152px;padding:3px 16px 3px 58px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);color:var(--ink);font-family:var(--f-hand);font-size:25px;line-height:36px;
+  background-color:var(--sheet);
+  background-image:linear-gradient(90deg,transparent 44px,var(--margin) 44px,var(--margin) 46px,transparent 46px),repeating-linear-gradient(180deg,transparent 0 35px,var(--rule) 35px 36px);
+  background-attachment:local}
+.sheet-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+.sheet-big{min-height:440px}
+.q-deep{margin:4px 0 0;font-family:var(--f-print);font-style:italic;font-size:19px;line-height:1.35}
+.q-deep::before{content:"↳ ";color:var(--accent);font-style:normal}
+
+.why{max-width:62ch;color:var(--ink-soft);font-size:14px}
+.why summary{width:max-content;max-width:100%;cursor:pointer;color:var(--accent);font-weight:600}
+.why p{margin:8px 0 0;font-family:var(--f-print);font-style:italic;font-size:15px;line-height:1.5}
+
+.nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px;padding-top:16px;border-top:1px solid var(--line)}
+.spacer{flex:1}
+
+.demo-banner{margin:0 0 16px;padding:10px 14px;border-radius:10px;background:var(--marker);color:var(--ink);font-size:14px}
+
+.sample{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:16px;border:1px dashed var(--line);border-radius:var(--r);background:var(--sheet)}
+.sample-q{margin:0;font-family:var(--f-print);font-weight:600;font-size:19px;line-height:1.3}
+.sample-a{margin:0;padding:3px 0 3px 40px;font-family:var(--f-hand);font-size:24px;line-height:36px;
+  background-image:linear-gradient(90deg,transparent 28px,var(--margin) 28px,var(--margin) 30px,transparent 30px),repeating-linear-gradient(180deg,transparent 0 35px,var(--rule) 35px 36px)}
+.sample-legend{margin:4px 0 0;font-size:13px;color:var(--ink-soft)}
+
+.mat{display:flex;flex-direction:column;margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.mat li{display:flex;flex-direction:column;gap:2px;padding-block:12px;border-bottom:1px solid var(--line)}
+.mat .hand{margin:0;font-family:var(--f-hand);font-size:24px;line-height:1.3;white-space:pre-wrap;overflow-wrap:anywhere}
+.mat-small .hand{font-size:21px}
+.ref summary{cursor:pointer;color:var(--accent);font-weight:600}
+.ref .mat{margin-top:8px}
+
+.confirm{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:var(--accent-tint)}
+.confirm span{flex:1 1 220px}
+
+.count{margin:-6px 0 0;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.detector{display:flex;flex-direction:column;gap:12px}
+.detector .lead{margin:0;font-weight:600}
+.detector .clean{margin:0;color:var(--ok)}
+.preview{margin:0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet);font-family:var(--f-hand);font-size:22px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+mark{color:inherit;border-radius:3px;padding:0 2px}
+mark.m-man{background:var(--marker)}
+mark.m-bad{background:var(--marker-2)}
+.hits{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.hits li{display:flex;flex-direction:column;gap:2px;font-size:15px}
+.hits .tag{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+
+.checks{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.checks li{display:flex;gap:12px;align-items:flex-start}
+.checks input{flex:none;width:22px;height:22px;margin-top:3px;accent-color:var(--accent)}
+.checks label{display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.checks label span{font-family:var(--f-print);font-size:18px;font-weight:600;line-height:1.35}
+.checks label small{font-size:14px;color:var(--ink-soft)}
+.ok{margin:0;font-family:var(--f-print);font-style:italic;font-size:20px;color:var(--ok)}
+.time{margin:0;font-family:var(--f-print);font-size:17px}
+.final-text{padding:12px 16px 12px 58px;border:1px solid var(--line);border-radius:var(--r);font-family:var(--f-hand);font-size:24px;line-height:36px;white-space:pre-wrap;overflow-wrap:anywhere;
+  background-color:var(--sheet);
+  background-image:linear-gradient(90deg,transparent 44px,var(--margin) 44px,var(--margin) 46px,transparent 46px),repeating-linear-gradient(180deg,transparent 0 35px,var(--rule) 35px 36px);
+  background-position:0 12px}
+.status{font-size:14px;color:var(--ink-soft)}
+.card{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet)}
+.future{display:flex;flex-direction:column;gap:6px;margin:0;padding-left:22px;font-family:var(--f-print);font-size:17px;line-height:1.4}
+.prompt-box{width:100%;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:13px/1.5 var(--f-ui);resize:vertical}
+
+.foot{display:flex;flex-direction:column;gap:12px;padding-block:8px 32px;font-size:13px;color:var(--ink-soft)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+@media (max-width:460px){
+  .choices{grid-template-columns:1fr}
+  .sheet-input{padding-left:46px;font-size:23px;background-image:linear-gradient(90deg,transparent 34px,var(--margin) 34px,var(--margin) 36px,transparent 36px),repeating-linear-gradient(180deg,transparent 0 35px,var(--rule) 35px 36px)}
+  .final-text{padding-left:46px;background-image:linear-gradient(90deg,transparent 34px,var(--margin) 34px,var(--margin) 36px,transparent 36px),repeating-linear-gradient(180deg,transparent 0 35px,var(--rule) 35px 36px)}
+  .sheet-big{min-height:360px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<header class="bar">
+  <div class="bar-in">
+    <span class="mark">Своими словами</span>
+    <span class="meta" id="meta" hidden><span id="prog"></span><span aria-hidden="true">·</span><span id="clock" aria-label="Время работы над текстом">00:00</span></span>
+  </div>
+  <div class="track" id="track" hidden><div class="fill" id="fill"></div></div>
+</header>
+
+<main class="wrap">
+  <p class="demo-banner" id="demoBanner" hidden>Это пример: ответы заполнены для демонстрации. Чтобы написать своё, нажми «Начать заново» внизу страницы.</p>
+
+  <section id="s-start" class="screen">
+    <p class="eyebrow">Бот, который не пишет за тебя</p>
+    <h1 class="lede">Я не напишу за тебя ни слова. Я задам вопросы о человеке, а текст напишешь ты.</h1>
+    <p class="note">Для тоста на тое, поздравления, извинения или благодарности. Ответы остаются на этом устройстве: ничего не отправляется и не сохраняется.</p>
+
+    <fieldset class="group">
+      <legend>Что пишем?</legend>
+      <div class="choices" id="occ"></div>
+    </fieldset>
+    <fieldset class="group">
+      <legend>О ком ты пишешь?</legend>
+      <div class="pills" id="pron"></div>
+    </fieldset>
+    <div class="row">
+      <button class="btn btn-primary" id="go" type="button" disabled>Начать</button>
+      <button class="btn-link" id="demo" type="button">Показать на примере</button>
+    </div>
+
+    <div class="sample">
+      <p class="eyebrow">Так выглядит один шаг</p>
+      <p class="sample-q">Что она делает так, как не делает никто другой?</p>
+      <p class="sample-a">Звонит каждый вечер в девять и первым делом спрашивает «поел?», а не про учёбу.</p>
+      <p class="sample-legend">Печатным шрифтом пишет бот, и только вопросы. От руки пишешь ты.</p>
+    </div>
+  </section>
+
+  <section id="s-q" class="screen" hidden>
+    <p class="eyebrow" id="qRole"></p>
+    <h2 class="q" id="qText" tabindex="-1"></h2>
+    <p class="hint" id="qHint"></p>
+    <textarea id="ans" class="sheet-input" rows="4" aria-labelledby="qText" spellcheck="true"></textarea>
+    <div id="deepBox" hidden>
+      <p class="q-deep" id="deepText"></p>
+      <textarea id="deep" class="sheet-input" rows="3" aria-labelledby="deepText" spellcheck="true"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" id="deepBtn" type="button">Копнуть глубже</button>
+    </div>
+    <details class="why" id="whyBox"><summary>Почему этот вопрос?</summary><p id="qWhy"></p></details>
+    <nav class="nav" aria-label="Переход между вопросами">
+      <button class="btn" id="back" type="button">Назад</button>
+      <span class="spacer"></span>
+      <button class="btn-link" id="skip" type="button">Пропустить</button>
+      <button class="btn btn-primary" id="next" type="button">Дальше</button>
+    </nav>
+  </section>
+
+  <section id="s-mat" class="screen" hidden>
+    <p class="eyebrow">Твой материал</p>
+    <h2 class="q" tabindex="-1">Вот что ты рассказал(а). Это уже почти текст.</h2>
+    <p class="hint">Ответы стоят в том порядке, в котором обычно строится такой текст. Ни одного слова бота здесь нет.</p>
+    <ol class="mat" id="matList"></ol>
+    <p class="hint" id="matNote"></p>
+    <div class="confirm" id="replaceAsk" hidden>
+      <span>В черновике уже есть текст. Заменить его ответами?</span>
+      <button class="btn" id="replaceNo" type="button">Оставить черновик</button>
+      <button class="btn btn-primary" id="replaceYes" type="button">Заменить</button>
+    </div>
+    <nav class="nav" aria-label="Переход">
+      <button class="btn" id="matBack" type="button">К вопросам</button>
+      <span class="spacer"></span>
+      <button class="btn-link" id="blank" type="button">С чистого листа</button>
+      <button class="btn btn-primary" id="assemble" type="button">Сложить мои ответы в черновик</button>
+    </nav>
+  </section>
+
+  <section id="s-draft" class="screen" hidden>
+    <p class="eyebrow">Черновик</p>
+    <h2 class="q" tabindex="-1">Теперь собери из этого свой текст.</h2>
+    <p class="hint">Переставляй, вычёркивай, дописывай. Детектор подсветит фразы «как принято», но сам ничего не исправит.</p>
+    <textarea id="draft" class="sheet-input sheet-big" rows="12" aria-label="Черновик текста" spellcheck="true"></textarea>
+    <p class="count" id="count"></p>
+    <div class="detector" id="detector" aria-live="polite"></div>
+    <details class="ref"><summary>Твой материал</summary><ol class="mat mat-small" id="matRef"></ol></details>
+    <nav class="nav" aria-label="Переход">
+      <button class="btn" id="draftBack" type="button">К материалу</button>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" id="toFinal" type="button">Готово, к проверке</button>
+    </nav>
+  </section>
+
+  <section id="s-final" class="screen" hidden>
+    <p class="eyebrow">Перед отправкой</p>
+    <h2 class="q" tabindex="-1">Три вопроса от трёх философов.</h2>
+    <ul class="checks">
+      <li><input type="checkbox" id="c1"><label for="c1"><span>Есть ли в тексте то, что мог(ла) написать только ты?</span><small>Беньямин: аура вещи — её «здесь и сейчас». Её нельзя скопировать.</small></label></li>
+      <li><input type="checkbox" id="c2"><label for="c2"><span>Нет ли фраз, которые подошли бы любому человеку?</span><small>Хайдеггер: так говорит das Man, то есть все и никто.</small></label></li>
+      <li><input type="checkbox" id="c3"><label for="c3"><span>Готов(а) ли ты сказать это вслух, глядя в глаза?</span><small>Сартр: за свои слова отвечаешь ты, а не обстоятельства.</small></label></li>
+    </ul>
+    <p class="ok" id="allOk" hidden>Это твои слова.</p>
+    <p class="time" id="timeSpent"></p>
+    <div class="final-text" id="finalText"></div>
+    <div class="row">
+      <button class="btn btn-primary" id="copy" type="button">Скопировать текст</button>
+      <span class="status" id="copyStatus" role="status"></span>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">В следующий раз можно без меня</p>
+      <p class="hint">Пять вопросов, которые стоит задать себе перед любым поздравлением.</p>
+      <ol class="future" id="future"></ol>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Если всё равно откроешь ChatGPT</p>
+      <p class="hint">Вставь этот текст первым сообщением. Модель будет задавать вопросы, а не писать за тебя.</p>
+      <div class="row">
+        <button class="btn" id="copyPrompt" type="button">Скопировать промпт</button>
+        <span class="status" id="promptStatus" role="status"></span>
+      </div>
+      <textarea id="promptText" class="prompt-box" rows="6" readonly aria-label="Промпт для ChatGPT"></textarea>
+    </div>
+
+    <p id="fbWrap" hidden><a class="btn" id="fb" href="#" target="_blank" rel="noopener">Ответить на 7 вопросов о боте (анонимно)</a></p>
+
+    <nav class="nav" aria-label="Переход">
+      <button class="btn" id="finalBack" type="button">К черновику</button>
+    </nav>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <div class="row" id="resetRow" hidden>
+    <button class="btn-link" id="reset" type="button">Начать заново</button>
+  </div>
+  <div class="confirm" id="resetAsk" hidden>
+    <span>Ответы и черновик сотрутся. Точно начать заново?</span>
+    <button class="btn" id="resetNo" type="button">Оставить</button>
+    <button class="btn btn-danger" id="resetYes" type="button">Да, стереть</button>
+  </div>
+  <p>Проект по философии · Astana IT University, SE-2402 · Ответы не сохраняются и никуда не отправляются.</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // Ссылка на Google-форму «после бота» (Приложение D). Пустая строка — кнопка не показывается.
+  var FEEDBACK_URL = '';
+
+  // {он|она|они} — подстановка по выбранному человеку: 0 — он, 1 — она, 2 — они.
+  var PRON = [
+    { label: 'Он' },
+    { label: 'Она' },
+    { label: 'Они', sub: 'пара, семья' }
+  ];
+
+  var WHY = {
+    address: 'Хайдеггер: «как принято» говорит das Man, то есть все и никто. Твоё обращение звучит только у тебя.',
+    moment: 'Беньямин: аура вещи — её «здесь и сейчас». Конкретный момент нельзя скопировать или сгенерировать.',
+    detail: 'Слова «добрая», «заботливый», «щедрый» подходят любому. Поступок или привычка говорят о конкретном человеке.',
+    wish: '«Счастья и здоровья» желают всем подряд. Конкретное пожелание показывает, что ты видишь именно этого человека.'
+  };
+
+  var OCC = {
+    toast: {
+      label: 'Тост на тое',
+      sub: 'Юбилей, свадьба, любой той',
+      questions: [
+        { role: 'Обращение', q: 'Как ты обращаешься к {нему|ней|ним}, когда никто не слушает?', hint: 'Не «уважаемый юбиляр», а как в жизни: «Ата», «Ержан-аға», «ребята».', deeper: 'С какого момента ты {его|её|их} помнишь? Сколько лет вы знакомы?', why: WHY.address },
+        { role: 'Момент', q: 'Вспомни один конкретный случай с {ним|ней|ними}. Где это было и что происходило?', hint: 'Место, время года, что было в руках. Чем конкретнее, тем живее.', deeper: 'Почему ты помнишь это до сих пор? Что ты тогда почувствовал(а)?', why: WHY.moment },
+        { role: 'История', q: 'Какую историю о {нём|ней|них} знают все за этим столом? Или какую им стоит узнать?', hint: 'Такую, чтобы все улыбнулись и никто не смутился.', deeper: 'Что эта история говорит о {нём|ней|них} как о человеке?', why: 'Беньямин: подлинность — это свидетельство прожитой истории. Тост, в котором есть ваша история, принадлежит только вам.' },
+        { role: 'Качество', q: 'Какое {его|её|их} качество видят все, а какое знают только близкие?', hint: 'Вместо «добрый» вспомни поступок, в котором это видно.', deeper: 'Когда ты видел(а) это в последний раз?', why: WHY.detail },
+        { role: 'Благодарность', q: 'Что {он|она|они} дал{|а|и} тебе или вашей семье, может быть, даже не заметив?', hint: 'Совет, привычка, фраза, поддержка в трудный момент.', deeper: 'Ты когда-нибудь говорил(а) {ему|ей|им} об этом вслух?', why: 'Ильенков: ценность слова в том, что ты отдаёшь от себя, а не в его блеске.' },
+        { role: 'Слова старших', q: 'Есть ли слова старших, бата или пословица, которые для вашей семьи что-то значат?', hint: 'Можно пропустить. Если есть, вспомни, от кого ты их слышал(а).', deeper: 'Почему эти слова подходят именно {ему|ей|им}?', why: 'Бата ценна тем, кто её даёт. Чужие слова становятся твоими, когда ты знаешь их историю.' },
+        { role: 'Пожелание', q: 'Чего ты желаешь {ему|ей|им}? Не «счастья и здоровья», а того, что важно в {его|её|их} жизни сейчас.', hint: 'Что впереди: внуки, новый дом, дорога, отдых, давняя мечта?', deeper: 'Что ты сам(а) готов(а) для этого сделать?', why: WHY.wish },
+        { role: 'Финал', q: 'Чем закончишь? За что все за столом поднимут бокалы и пиалы вместе с тобой?', hint: 'Одна короткая фраза, которую подхватит зал.', deeper: null, why: 'Лекция 8: искусство — это идея автора плюс восприятие зрителя. Тост живёт, когда его подхватывают.' }
+      ]
+    },
+    congrats: {
+      label: 'Поздравление',
+      sub: 'День рождения мамы, папы, друга',
+      questions: [
+        { role: 'Обращение', q: 'Как ты обращаешься к {нему|ней|ним}, когда никто не слышит?', hint: '«Мам», «апа», «әке», домашнее прозвище. Пиши как есть.', deeper: 'А как {он|она|они} называ{ет|ет|ют} тебя?', why: WHY.address },
+        { role: 'Момент', q: 'Вспомни один момент с {ним|ней|ними}, который помнишь до сих пор. Где вы были?', hint: 'Не обязательно важный. Иногда запоминается мелочь, и это лучшее.', deeper: 'Почему, как думаешь, запомнился именно он?', why: WHY.moment },
+        { role: 'Деталь', q: 'Что {он|она|они} дела{ет|ет|ют} так, как не делает никто другой?', hint: 'Привычка, словечко, блюдо, жест.', deeper: 'Как бы ты описал(а) это человеку, который {его|её|их} никогда не видел?', why: WHY.detail },
+        { role: 'Урок', q: 'Чему ты у {него|неё|них} научился(лась), даже не заметив?', hint: 'Иногда это видно только сейчас, во взрослой жизни.', deeper: 'Когда ты поймал(а) себя на этом в последний раз?', why: 'Ильенков: личность складывается в отношениях с другими людьми. Ты несёшь в себе часть этого человека.' },
+        { role: 'Спасибо', q: 'За что ты ни разу не сказал(а) {ему|ей|им} «спасибо», хотя стоило?', hint: 'То, что трудно сказать, обычно и есть самое ценное.', deeper: 'Что мешало сказать это раньше?', why: 'Сартр: сказать трудное — это выбор. Шаблон позволяет не выбирать, своё слово требует решимости.' },
+        { role: 'Пожелание', q: 'Чего ты хочешь для {него|неё|них}? Не «здоровья», а конкретно, в этом году.', hint: 'Отдохнуть, съездить, закончить, начать, перестать волноваться за тебя?', deeper: 'Что из этого зависит от тебя?', why: WHY.wish },
+        { role: 'Несказанное', q: 'Что тебе хочется сказать, но страшновато?', hint: 'Можно пропустить. Можно написать и потом решить, оставить ли.', deeper: null, why: 'Сартр: мы свободны и поэтому отвечаем и за сказанное, и за несказанное. Пропустить тоже можно, это тоже выбор.' }
+      ]
+    },
+    apology: {
+      label: 'Извинение',
+      sub: 'Другу, близкому, соседу',
+      questions: [
+        { role: 'Обращение', q: 'Кому ты пишешь? Как ты обычно к {нему|ней|ним} обращаешься?', hint: 'Имя или прозвище, как в ваших переписках.', deeper: 'Что для тебя значат эти отношения?', why: WHY.address },
+        { role: 'Факты', q: 'Что произошло? Опиши фактами, без оправданий.', hint: 'Как записала бы камера: кто, что сделал, когда.', deeper: 'Какую часть этого сделал(а) именно ты?', why: 'Сартр: дурная вера прячется в обстоятельствах. Факты возвращают тебе твою часть.' },
+        { role: 'Другая сторона', q: 'Как это выглядело с {его|её|их} стороны? Что {он|она|они} мог{|ла|ли} почувствовать?', hint: 'Попробуй описать, не защищаясь.', deeper: 'Что {он|она|они} сказал{|а|и} или сделал{|а|и} после? Что это тебе говорит?', why: 'Сократ называл себя повитухой мыслей: ответ уже есть у тебя, вопрос помогает его увидеть.' },
+        { role: 'Признание', q: 'За что конкретно ты извиняешься?', hint: 'Не «если я тебя обидел(а)», а «я …». Начни с «я».', deeper: 'Есть ли в твоём ответе «но»? Что останется, если его убрать?', why: 'Сартр: извиниться — значит взять ответственность. «Если» и «но» тихо отдают её обратно.' },
+        { role: 'Объяснение', q: 'Почему ты так поступил(а)? Объясни, но не оправдывайся.', hint: 'Объяснение говорит «что я выбрал(а)». Оправдание говорит «меня вынудили».', deeper: 'Что ты выбрал(а) бы сейчас, в той же ситуации?', why: 'Сартр: человек всегда выбирает. Признать свой выбор честнее, чем сослаться на обстоятельства.' },
+        { role: 'Что изменю', q: 'Что ты готов(а) сделать иначе? Конкретно.', hint: 'Одно реальное действие лучше трёх обещаний.', deeper: 'Когда ты это сделаешь?', why: 'Сартр: человек есть то, что он делает. Извинение без действия остаётся словами.' },
+        { role: 'Без условий', q: 'Чего ты не будешь от {него|неё|них} требовать?', hint: 'Например, простить прямо сейчас. Извинение не сделка.', deeper: null, why: 'Извинение — это дар, а не обмен: ты отдаёшь, ничего не требуя взамен.' }
+      ]
+    },
+    thanks: {
+      label: 'Благодарность',
+      sub: 'Учителю, тренеру, родным',
+      questions: [
+        { role: 'Обращение', q: 'Кому ты хочешь сказать спасибо? Как ты к {нему|ней|ним} обращаешься?', hint: 'По имени, «апай», «тренер», как привык(ла).', deeper: 'Как вы познакомились?', why: WHY.address },
+        { role: 'Поступок', q: 'За что конкретно ты хочешь сказать спасибо?', hint: 'Один поступок, а не «за всё».', deeper: 'Когда и где это было?', why: WHY.moment },
+        { role: 'Без этого', q: 'Что было бы, если бы {он|она|они} тогда не помог{|ла|ли}?', hint: 'Представь тот же день без этого человека.', deeper: 'Знает ли {он|она|они}, насколько это было важно?', why: 'Ильенков: ценен вклад человека. Мир без его поступка показывает, что именно он отдал.' },
+        { role: 'Чувство', q: 'Что ты почувствовал(а) тогда? А что чувствуешь сейчас, вспоминая?', hint: 'Одно-два слова, не обязательно красивых.', deeper: null, why: 'Сёрл: машина оперирует словами, не понимая их. Чувство за словом есть только у тебя.' },
+        { role: 'Что изменилось', q: 'Что изменилось в твоей жизни благодаря этому?', hint: 'Решение, привычка, путь, уверенность в себе.', deeper: 'Как ты используешь это сейчас?', why: 'Беньямин: подлинность — свидетельство истории. Благодарность называет историю, которая случилась благодаря человеку.' },
+        { role: 'Сейчас', q: 'Что ты хочешь, чтобы {он|она|они} знал{|а|и} о тебе сейчас?', hint: 'Где ты, чем занимаешься, что из этого связано с {ним|ней|ними}.', deeper: null, why: 'Связь между людьми живёт, пока о ней говорят. Расскажи, чем она продолжилась.' }
+      ]
+    }
+  };
+  var OCC_ORDER = ['toast', 'congrats', 'apology', 'thanks'];
+
+  var FUTURE = {
+    general: [
+      'Как я обращаюсь к этому человеку, когда никто не слышит?',
+      'Какой один момент с ним я помню до сих пор и почему?',
+      'Что он делает так, как не делает никто другой?',
+      'Что я ни разу не сказал(а) ему вслух, хотя стоило?',
+      'Чего я хочу для него конкретно, сейчас?'
+    ],
+    apology: [
+      'Что произошло, если описать одними фактами?',
+      'Как это выглядело с его стороны?',
+      'За что именно я извиняюсь, если начать с «я»?',
+      'Что я сделаю иначе и когда?',
+      'Чего я не буду требовать взамен?'
+    ]
+  };
+
+  var PROMPT = [
+    'Ты — «Сократ для поздравлений». Твоя задача — помочь мне САМОМУ написать тост, поздравление или извинение близкому человеку.',
+    '',
+    'Правила:',
+    '1. Ты никогда не пишешь за меня текст, фразы или примеры формулировок — даже если я прошу. На «просто напиши» мягко откажись одной фразой и задай следующий маленький вопрос.',
+    '2. Задавай по ОДНОМУ вопросу за раз и жди ответа. Спрашивай о конкретном: моменты, места, детали, привычки и фразы этого человека, что я чувствую.',
+    '3. Если ответ общий («она добрая»), попроси пример: «Когда ты видел это в последний раз?»',
+    '4. Не хвали и не оценивай мои чувства. Можно коротко повторить мои же слова, чтобы я услышал их со стороны.',
+    '5. После 6–8 вопросов покажи список МОИХ ответов дословно и предложи порядок: обращение → момент → качество → благодарность или признание → пожелание. Не добавляй ни одного своего слова.',
+    '6. Когда я пришлю черновик, не переписывай его. Отметь фразы, которые подошли бы любому человеку, и спроси, чем их заменить.',
+    '7. Для извинения: следи, чтобы я извинялся за конкретный поступок — без «если я тебя обидел» и без оправданий. Спроси, что я готов сделать иначе.',
+    '8. Напомни мне не писать фамилии, адреса и другие личные данные — хватит имени или того, как я к человеку обращаюсь.',
+    '',
+    'Начни с вопроса: кому и по какому поводу я пишу.'
+  ].join('\n');
+
+  // Шаблоны «как принято» (das Man) и оправдания (дурная вера). Подсвечиваются, но не исправляются.
+  var CLICHES = [
+    ['(?:крепкого )?(?:здоровья|счастья)(?:,| и) (?:крепкого )?(?:здоровья|счастья)', 'man'],
+    ['крепкого здоровья', 'man'],
+    ['всего самого (?:наи)?лучшего', 'man'],
+    ['всего наилучшего', 'man'],
+    ['исполнения (?:всех )?(?:желаний|задуманного)', 'man'],
+    ['мечты сбываются', 'man'],
+    ['сбудутся (?:все )?(?:твои |ваши )?мечты', 'man'],
+    ['сбылись (?:все )?(?:твои |ваши )?мечты', 'man'],
+    ['пусть каждый (?:день|миг|момент)', 'man'],
+    ['море (?:улыбок|счастья|позитива|радости)', 'man'],
+    ['(?:мирного|чистого|ясного) неба', 'man'],
+    ['женского счастья', 'man'],
+    ['(?:добр[оа],? )?тепл[оа] и уют[а]?|уют[а]? и тепл[оа]', 'man'],
+    ['пусть цар(?:ят|ит)', 'man'],
+    ['согрева(?:ют|ет|ли) душу', 'man'],
+    ['верн(?:ые|ых) и над[её]жн(?:ые|ых)', 'man'],
+    ['(?:с )?(?:таким |этим )?(?:прекрасным|замечательным|чудесным|светлым) дн[её]м', 'man'],
+    ['незабываемых (?:впечатлений|моментов|эмоций)', 'man'],
+    ['приятных (?:сюрпризов|моментов|впечатлений)', 'man'],
+    ['новых (?:свершений|побед|достижений|горизонтов)', 'man'],
+    ['творческих успехов', 'man'],
+    ['достатка', 'man'],
+    ['благополучия', 'man'],
+    ['оставайся (?:всегда )?так(?:ой|им|ими) же', 'man'],
+    ['от всей души', 'man'],
+    ['в этот (?:замечательный|прекрасный|знаменательный|особенный|чудесный|светлый) день', 'man'],
+    ['(?:неиссякаемой|бесконечной) энергии', 'man'],
+    ['(?:удачи|успехов) во вс(?:ех начинаниях|[её]м)', 'man'],
+    ['любви и (?:благополучия|понимания|тепла)', 'man'],
+    ['долгих лет жизни', 'man'],
+    ['благополучия и процветания', 'man'],
+    ['добра и (?:света|тепла|счастья)', 'man'],
+    ['ярких (?:моментов|впечатлений|красок|эмоций)', 'man'],
+    ['пусть жизнь (?:будет )?(?:наполнена|полна)', 'man'],
+    ['(?:самая|самый) лучш(?:ая|ий) на свете', 'man'],
+    ['(?:нет|не хватит|не найти) слов', 'man'],
+    ['чтобы вс[её] было хорошо', 'man'],
+    ['(?:отличного|хорошего|позитивного|прекрасного|праздничного) настроения', 'man'],
+    ['(?:приношу|прошу) (?:свои |мои )?(?:извинения|прощения)', 'man'],
+    ['если я (?:тебя |вас )?(?:чем-то |как-то |чем-нибудь )?(?:обидел|обидела|задел|задела)', 'bad'],
+    ['(?:извини|прости|извините|простите),? но', 'bad'],
+    ['так получилось', 'bad'],
+    ['так вышло', 'bad'],
+    ['обстоятельства (?:так )?сложились', 'bad'],
+    ['(?:ты же|сам|сама) понимаешь', 'bad'],
+    ['я не специально', 'bad']
+  ];
+  var HIT_TEXT = {
+    man: { tag: 'Так говорят все', ask: 'Эта фраза подойдёт любому человеку. Что ты имеешь в виду именно для {него|неё|них}?' },
+    bad: { tag: 'Похоже на оправдание', ask: 'Здесь ответственность уходит в обстоятельства или к другому. Как сказать это от первого лица?' }
+  };
+  var RX = CLICHES.map(function (c) {
+    var re;
+    try { re = new RegExp('(?<!\\p{L})(?:' + c[0] + ')(?!\\p{L})', 'giu'); }
+    catch (e) { re = new RegExp('(?:' + c[0] + ')', 'gi'); }
+    return { re: re, t: c[1] };
+  });
+
+  var DEMO = [
+    { main: 'Мам. Иногда «анашым», когда хочу её рассмешить.', deep: '' },
+    { main: 'Зима, девятый класс, я заболел перед олимпиадой. Она всю ночь сидела рядом и проверяла мои задачи, хотя ничего не понимала в физике.', deep: 'Помню её голос: «давай ещё одну, и спать».' },
+    { main: 'Звонит каждый вечер в девять и первым делом спрашивает «поел?», а не про учёбу.', deep: '' },
+    { main: 'Не откладывать неприятное на завтра. Вспоминаю это перед каждым дедлайном.', deep: '' },
+    { main: 'За то, что отпустила учиться в Астану и ни разу не сказала, как ей без меня тяжело.', deep: '' },
+    { main: 'Счастья и здоровья. И чтобы наконец съездила в Туркестан, как давно хочет.', deep: '' },
+    { main: '', deep: '' }
+  ];
+
+  var state;
+  function fresh() {
+    return { screen: 'start', occ: null, pr: null, answersOcc: null, i: 0, answers: [], draft: '', start: 0, end: 0, demo: false };
+  }
+  state = fresh();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var SCREENS = ['start', 'q', 'mat', 'draft', 'final'];
+
+  function fill(s) {
+    if (!s) return '';
+    var k = state.pr === null ? 1 : state.pr;
+    return s.replace(/\{([^{}]*)\}/g, function (_, g) {
+      var p = g.split('|');
+      return p[k] !== undefined ? p[k] : p[0];
+    });
+  }
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+    return many;
+  }
+  function qs() { return OCC[state.occ].questions; }
+  function joinAns(a) {
+    return [a.main.trim(), a.deep.trim()].filter(Boolean).join(' ');
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  // ---------- экраны ----------
+  function show(name) {
+    state.screen = name;
+    SCREENS.forEach(function (s) {
+      var sec = $('s-' + s);
+      sec.hidden = s !== name;
+      sec.classList.remove('enter');
+    });
+    var sec = $('s-' + name);
+    void sec.offsetWidth;
+    sec.classList.add('enter');
+    var inFlow = name !== 'start';
+    $('meta').hidden = !inFlow;
+    $('track').hidden = !inFlow;
+    $('resetRow').hidden = !inFlow;
+    $('resetAsk').hidden = true;
+    $('demoBanner').hidden = !(state.demo && inFlow);
+    updateProgress();
+    tick();
+    window.scrollTo(0, 0);
+    var h = sec.querySelector('.q');
+    if (h && name !== 'q') h.focus({ preventScroll: true });
+  }
+
+  function updateProgress() {
+    if (!state.occ) return;
+    var n = qs().length, total = n + 3, pos = 0, label = '';
+    if (state.screen === 'q') { pos = state.i + 1; label = 'Вопрос ' + (state.i + 1) + ' из ' + n; }
+    else if (state.screen === 'mat') { pos = n + 1; label = 'Материал'; }
+    else if (state.screen === 'draft') { pos = n + 2; label = 'Черновик'; }
+    else if (state.screen === 'final') { pos = total; label = 'Проверка'; }
+    $('prog').textContent = label;
+    $('fill').style.width = Math.round(pos / total * 100) + '%';
+  }
+
+  function tick() {
+    if (!state.start) { $('clock').textContent = '00:00'; return; }
+    var ms = (state.end || Date.now()) - state.start;
+    var s = Math.floor(ms / 1000);
+    var mm = Math.floor(s / 60), ss = s % 60;
+    $('clock').textContent = (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss;
+  }
+  setInterval(tick, 1000);
+
+  // ---------- старт ----------
+  function renderStart() {
+    var occBox = $('occ');
+    occBox.textContent = '';
+    OCC_ORDER.forEach(function (key) {
+      var o = OCC[key];
+      var b = el('button', 'choice');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(state.occ === key));
+      b.appendChild(el('b', '', o.label));
+      b.appendChild(el('span', '', o.sub));
+      b.addEventListener('click', function () { state.occ = key; renderStart(); });
+      occBox.appendChild(b);
+    });
+    var pBox = $('pron');
+    pBox.textContent = '';
+    PRON.forEach(function (p, idx) {
+      var b = el('button', 'pill', p.label);
+      b.type = 'button';
+      if (p.sub) { b.appendChild(document.createTextNode(' ')); b.appendChild(el('small', '', '(' + p.sub + ')')); }
+      b.setAttribute('aria-pressed', String(state.pr === idx));
+      b.addEventListener('click', function () { state.pr = idx; renderStart(); });
+      pBox.appendChild(b);
+    });
+    $('go').disabled = !(state.occ && state.pr !== null);
+  }
+
+  function begin() {
+    if (state.answersOcc !== state.occ) {
+      state.answers = qs().map(function () { return { main: '', deep: '', showDeep: false }; });
+      state.answersOcc = state.occ;
+      state.draft = '';
+    }
+    if (!state.start) state.start = Date.now();
+    state.end = 0;
+    state.i = 0;
+    show('q');
+    renderQ();
+  }
+
+  // ---------- вопросы ----------
+  function renderQ() {
+    var list = qs(), q = list[state.i], a = state.answers[state.i];
+    $('qRole').textContent = q.role;
+    $('qText').textContent = fill(q.q);
+    $('qHint').textContent = fill(q.hint);
+    $('ans').value = a.main;
+    $('qWhy').textContent = q.why;
+    $('whyBox').open = false;
+    if (q.deeper) {
+      $('deepText').textContent = fill(q.deeper);
+      $('deep').value = a.deep;
+      var open = a.showDeep || !!a.deep;
+      $('deepBox').hidden = !open;
+      $('deepBtn').hidden = open;
+    } else {
+      $('deepBox').hidden = true;
+      $('deepBtn').hidden = true;
+    }
+    $('next').textContent = state.i === list.length - 1 ? 'К материалу' : 'Дальше';
+    updateProgress();
+    var sec = $('s-q');
+    sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter');
+    if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) $('ans').focus({ preventScroll: true });
+  }
+  function nextQ() {
+    if (state.i < qs().length - 1) { state.i++; renderQ(); window.scrollTo(0, 0); }
+    else { show('mat'); renderMat(); }
+  }
+
+  // ---------- материал ----------
+  function items() {
+    return qs().map(function (q, idx) {
+      return { role: q.role, text: joinAns(state.answers[idx]) };
+    }).filter(function (x) { return x.text; });
+  }
+  function fillList(ol, list) {
+    ol.textContent = '';
+    list.forEach(function (x) {
+      var li = el('li');
+      li.appendChild(el('span', 'eyebrow', x.role));
+      li.appendChild(el('p', 'hand', x.text));
+      ol.appendChild(li);
+    });
+  }
+  function renderMat() {
+    var list = items();
+    fillList($('matList'), list);
+    var skipped = qs().length - list.length;
+    var note = '';
+    if (!list.length) note = 'Пока пусто. Вернись к вопросам: хватит одного-двух ответов.';
+    else if (skipped) note = 'Пропущено ' + skipped + ' ' + plural(skipped, 'вопрос', 'вопроса', 'вопросов') + '. К ним можно вернуться.';
+    $('matNote').textContent = note;
+    $('assemble').disabled = !list.length;
+    $('replaceAsk').hidden = true;
+  }
+  function assembled() {
+    return items().map(function (x) { return x.text; }).join('\n\n');
+  }
+  function goDraft() { show('draft'); renderDraft(); }
+
+  // ---------- черновик ----------
+  function findCliches(text) {
+    var hits = [];
+    RX.forEach(function (r) {
+      r.re.lastIndex = 0;
+      var m;
+      while ((m = r.re.exec(text)) !== null) {
+        if (!m[0]) { r.re.lastIndex++; continue; }
+        hits.push({ s: m.index, e: m.index + m[0].length, t: r.t, str: m[0] });
+      }
+    });
+    hits.sort(function (a, b) { return a.s - b.s || b.e - a.e; });
+    var out = [], last = -1;
+    hits.forEach(function (h) { if (h.s >= last) { out.push(h); last = h.e; } });
+    return out;
+  }
+  var detTimer = null;
+  function renderDraft() {
+    $('draft').value = state.draft;
+    fillList($('matRef'), items());
+    runDetector();
+  }
+  function runDetector() {
+    var text = state.draft;
+    var words = (text.trim().match(/\S+/g) || []).length;
+    $('count').textContent = words ? words + ' ' + plural(words, 'слово', 'слова', 'слов') : '';
+    var box = $('detector');
+    box.textContent = '';
+    if (!text.trim()) return;
+    var hits = findCliches(text);
+    if (!hits.length) {
+      box.appendChild(el('p', 'clean', 'Фраз «как принято» не найдено.'));
+      return;
+    }
+    box.appendChild(el('p', 'lead', 'Детектор нашёл ' + hits.length + ' ' + plural(hits.length, 'фразу', 'фразы', 'фраз') + ' «как принято». Оставить или заменить, решаешь ты.'));
+    var pre = el('div', 'preview');
+    var pos = 0;
+    hits.forEach(function (h) {
+      if (h.s > pos) pre.appendChild(document.createTextNode(text.slice(pos, h.s)));
+      pre.appendChild(el('mark', h.t === 'bad' ? 'm-bad' : 'm-man', text.slice(h.s, h.e)));
+      pos = h.e;
+    });
+    if (pos < text.length) pre.appendChild(document.createTextNode(text.slice(pos)));
+    box.appendChild(pre);
+    var ul = el('ul', 'hits'), seen = {};
+    hits.forEach(function (h) {
+      var key = h.str.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = true;
+      var li = el('li');
+      li.appendChild(el('span', 'tag', HIT_TEXT[h.t].tag));
+      var line = el('span');
+      line.appendChild(el('mark', h.t === 'bad' ? 'm-bad' : 'm-man', h.str));
+      line.appendChild(document.createTextNode(' ' + fill(HIT_TEXT[h.t].ask)));
+      li.appendChild(line);
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
+  // ---------- проверка ----------
+  function renderFinal() {
+    if (!state.end) state.end = Date.now();
+    tick();
+    var mins = Math.max(1, Math.round((state.end - state.start) / 60000));
+    $('timeSpent').textContent = 'На этот текст ушло ' + mins + ' ' + plural(mins, 'минута', 'минуты', 'минут') + '. Это время тоже часть подарка.';
+    var t = state.draft.trim();
+    $('finalText').textContent = t || 'Черновик пуст. Вернись и напиши хотя бы пару строк.';
+    $('copy').disabled = !t;
+    $('copyStatus').textContent = '';
+    $('promptStatus').textContent = '';
+    var f = $('future');
+    f.textContent = '';
+    (state.occ === 'apology' ? FUTURE.apology : FUTURE.general).forEach(function (s) { f.appendChild(el('li', '', s)); });
+    $('promptText').value = PROMPT;
+    if (FEEDBACK_URL) { $('fb').href = FEEDBACK_URL; $('fbWrap').hidden = false; }
+    checkAll();
+  }
+  function checkAll() {
+    $('allOk').hidden = !($('c1').checked && $('c2').checked && $('c3').checked);
+  }
+  function selectNode(node) {
+    try {
+      if (node.select) { node.focus(); node.select(); return; }
+      var r = document.createRange();
+      r.selectNodeContents(node);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    } catch (e) { /* выделение недоступно */ }
+  }
+  function copyText(text, status, node) {
+    var fail = function () {
+      selectNode(node);
+      status.textContent = 'Не получилось скопировать автоматически. Текст выделен: скопируй его вручную.';
+    };
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) { fail(); return; }
+      navigator.clipboard.writeText(text).then(function () { status.textContent = 'Скопировано.'; }, fail);
+    } catch (e) { fail(); }
+  }
+
+  // ---------- события ----------
+  $('go').addEventListener('click', begin);
+  $('demo').addEventListener('click', function () {
+    state = fresh();
+    state.occ = 'congrats'; state.pr = 1; state.demo = true;
+    state.answersOcc = 'congrats';
+    state.answers = DEMO.map(function (d) { return { main: d.main, deep: d.deep, showDeep: !!d.deep }; });
+    state.start = Date.now();
+    state.i = 0;
+    show('q');
+    renderQ();
+  });
+
+  $('ans').addEventListener('input', function (e) { state.answers[state.i].main = e.target.value; });
+  $('deep').addEventListener('input', function (e) { state.answers[state.i].deep = e.target.value; });
+  $('ans').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); nextQ(); } });
+  $('deepBtn').addEventListener('click', function () {
+    state.answers[state.i].showDeep = true;
+    $('deepBox').hidden = false;
+    $('deepBtn').hidden = true;
+    $('deep').focus();
+  });
+  $('next').addEventListener('click', nextQ);
+  $('skip').addEventListener('click', nextQ);
+  $('back').addEventListener('click', function () {
+    if (state.i > 0) { state.i--; renderQ(); window.scrollTo(0, 0); }
+    else { show('start'); renderStart(); }
+  });
+
+  $('matBack').addEventListener('click', function () { state.i = qs().length - 1; show('q'); renderQ(); });
+  $('blank').addEventListener('click', goDraft);
+  $('assemble').addEventListener('click', function () {
+    var text = assembled();
+    if (state.draft.trim() && state.draft !== text) { $('replaceAsk').hidden = false; $('replaceYes').focus(); return; }
+    state.draft = text;
+    goDraft();
+  });
+  $('replaceYes').addEventListener('click', function () { state.draft = assembled(); goDraft(); });
+  $('replaceNo').addEventListener('click', goDraft);
+
+  $('draft').addEventListener('input', function (e) {
+    state.draft = e.target.value;
+    clearTimeout(detTimer);
+    detTimer = setTimeout(runDetector, 250);
+  });
+  $('draftBack').addEventListener('click', function () { show('mat'); renderMat(); });
+  $('toFinal').addEventListener('click', function () { show('final'); renderFinal(); });
+
+  ['c1', 'c2', 'c3'].forEach(function (id) { $(id).addEventListener('change', checkAll); });
+  $('copy').addEventListener('click', function () { copyText(state.draft.trim(), $('copyStatus'), $('finalText')); });
+  $('copyPrompt').addEventListener('click', function () { copyText(PROMPT, $('promptStatus'), $('promptText')); });
+  $('finalBack').addEventListener('click', function () { state.end = 0; show('draft'); renderDraft(); });
+
+  $('reset').addEventListener('click', function () { $('resetAsk').hidden = false; $('resetYes').focus(); });
+  $('resetNo').addEventListener('click', function () { $('resetAsk').hidden = true; });
+  $('resetYes').addEventListener('click', function () {
+    state = fresh();
+    ['ans', 'deep', 'draft'].forEach(function (id) { $(id).value = ''; });
+    ['c1', 'c2', 'c3'].forEach(function (id) { $(id).checked = false; });
+    show('start');
+    renderStart();
+  });
+
+  renderStart();
+  show('start');
+})();
+</script>
+</body>
+</html>
